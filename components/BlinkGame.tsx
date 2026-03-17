@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { useGameSounds } from "@/hooks/useGameSounds";
 
 const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
@@ -15,6 +16,11 @@ export default function BlinkGame() {
   const startTimeRef = useRef<number>(0);
   const isRunningRef = useRef(false);
 
+  const searchParams = useSearchParams();
+  const challengeTime = searchParams.get("challenge")
+    ? parseFloat(searchParams.get("challenge")!)
+    : null;
+
   const [phase, setPhase] = useState<"idle" | "loading" | "playing" | "result">("idle");
   const { playStart, playWarning, playBlink, playNewRecord } = useGameSounds();
   const warnCooldownRef = useRef(0);
@@ -27,6 +33,14 @@ export default function BlinkGame() {
   useEffect(() => {
     const bt = localStorage.getItem("blink_saver_best");
     if (bt) setBestTime(parseFloat(bt));
+  }, []);
+
+  /* Stop the old camera stream before starting a new one */
+  const stopStream = useCallback(() => {
+    if (videoRef.current?.srcObject) {
+      (videoRef.current.srcObject as MediaStream).getTracks().forEach((t) => t.stop());
+      videoRef.current.srcObject = null;
+    }
   }, []);
 
   const endGame = useCallback((finalTime: number) => {
@@ -45,6 +59,11 @@ export default function BlinkGame() {
   }, [playBlink, playNewRecord]);
 
   const loadAndStart = useCallback(async () => {
+    /* Cancel any in-flight animation loop and stop old stream first */
+    isRunningRef.current = false;
+    cancelAnimationFrame(rafRef.current);
+    stopStream();
+
     setPhase("loading");
     setError(null);
     try {
@@ -55,16 +74,19 @@ export default function BlinkGame() {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
       }
-      const vision = await import("@mediapipe/tasks-vision");
-      const { FaceLandmarker, FilesetResolver } = vision;
-      const fs = await FilesetResolver.forVisionTasks(WASM_URL);
-      const fl = await FaceLandmarker.createFromOptions(fs, {
-        baseOptions: { modelAssetPath: MODEL_URL, delegate: "GPU" },
-        runningMode: "VIDEO",
-        numFaces: 1,
-        outputFaceBlendshapes: true,
-      });
-      landmarkerRef.current = fl;
+      /* Reuse existing landmarker if available */
+      if (!landmarkerRef.current) {
+        const vision = await import("@mediapipe/tasks-vision");
+        const { FaceLandmarker, FilesetResolver } = vision;
+        const fs = await FilesetResolver.forVisionTasks(WASM_URL);
+        const fl = await FaceLandmarker.createFromOptions(fs, {
+          baseOptions: { modelAssetPath: MODEL_URL, delegate: "GPU" },
+          runningMode: "VIDEO",
+          numFaces: 1,
+          outputFaceBlendshapes: true,
+        });
+        landmarkerRef.current = fl;
+      }
       startTimeRef.current = performance.now();
       isRunningRef.current = true;
       setElapsed(0);
@@ -75,7 +97,7 @@ export default function BlinkGame() {
       setError("カメラへのアクセスを許可してください");
       setPhase("idle");
     }
-  }, [playStart]);
+  }, [playStart, stopStream]);
 
   useEffect(() => {
     if (phase !== "playing") return;
@@ -169,11 +191,10 @@ export default function BlinkGame() {
   useEffect(
     () => () => {
       cancelAnimationFrame(rafRef.current);
-      if (videoRef.current?.srcObject) {
-        (videoRef.current.srcObject as MediaStream).getTracks().forEach((t) => t.stop());
-      }
+      isRunningRef.current = false;
+      stopStream();
     },
-    []
+    [stopStream]
   );
 
   const formatTime = (s: number) => s.toFixed(2) + "秒";
@@ -184,10 +205,18 @@ export default function BlinkGame() {
     s >= 5  ? "🙂 初心者" :
               "😅 練習が必要";
 
+  const challengeUrl = "https://blink-saver.vercel.app/game?challenge=" + elapsed.toFixed(2);
+  const challengeResult = challengeTime !== null
+    ? (elapsed >= challengeTime ? "勝ち！🎉" : "負け...😢")
+    : null;
+  const challengeDiff = challengeTime !== null
+    ? elapsed - challengeTime
+    : null;
+
   const shareText =
     "👁️ まばたき禁止チャレンジ\n" +
     formatTime(elapsed) + " 耐えました！\n" +
-    getRank(elapsed) + "\nあなたは勝てる？\n#まばたき禁止\nhttps://blink-saver.vercel.app";
+    getRank(elapsed) + "\nあなたは勝てる？\n#まばたき禁止\n" + challengeUrl;
   const shareUrl =
     "https://twitter.com/intent/tweet?text=" + encodeURIComponent(shareText);
 
@@ -210,6 +239,14 @@ export default function BlinkGame() {
             {formatTime(elapsed)}
           </div>
           <div className="text-lg font-bold mb-4 text-indigo-300">{getRank(elapsed)}</div>
+          {challengeTime !== null && challengeDiff !== null && (
+            <div className={`text-lg font-black mb-3 ${challengeDiff >= 0 ? "text-green-400" : "text-red-400"}`}>
+              {challengeResult}
+              <span className="block text-sm font-bold mt-1">
+                友達より{Math.abs(challengeDiff).toFixed(2)}秒{challengeDiff >= 0 ? "長い" : "短い"}
+              </span>
+            </div>
+          )}
           {bestTime !== null && elapsed >= bestTime && (
             <div className="text-yellow-400 font-bold mb-3">🎉 新記録！</div>
           )}
@@ -218,7 +255,7 @@ export default function BlinkGame() {
           )}
           <div className="space-y-2">
             <button
-              onClick={() => { setPhase("idle"); loadAndStart(); }}
+              onClick={loadAndStart}
               className="w-full py-3 rounded-xl font-black text-white"
               style={{ background: "linear-gradient(135deg, #6366f1, #4338ca)" }}
             >
@@ -234,7 +271,7 @@ export default function BlinkGame() {
               <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
               </svg>
-              Xでシェア
+              友達に挑戦状を送る
             </a>
           </div>
         </div>
@@ -287,6 +324,15 @@ export default function BlinkGame() {
                   まばたき禁止
                 </h1>
                 <p className="text-indigo-400 text-sm mb-4">何秒耐えられる？</p>
+                {challengeTime !== null && (
+                  <div className="mb-4 px-4 py-2 rounded-xl animate-pulse"
+                    style={{ background: "rgba(234,179,8,0.15)", border: "1px solid rgba(234,179,8,0.4)" }}>
+                    <p className="text-yellow-400 font-black text-lg">
+                      {challengeTime.toFixed(1)}秒の記録に挑戦！
+                    </p>
+                    <p className="text-yellow-600 text-xs">友達からの挑戦状</p>
+                  </div>
+                )}
                 {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
                 {bestTime && (
                   <p className="text-indigo-400 text-sm mb-3">
@@ -322,6 +368,13 @@ export default function BlinkGame() {
             <div className="text-4xl font-black" style={{ color: "#818cf8" }}>
               {elapsed.toFixed(2)}秒
             </div>
+            {challengeTime !== null && (
+              <div className="text-xs font-bold mt-1"
+                style={{ color: elapsed >= challengeTime ? "#22c55e" : "#f59e0b" }}>
+                目標: {challengeTime.toFixed(1)}秒
+                {elapsed >= challengeTime && " 突破！"}
+              </div>
+            )}
           </div>
           <div className="text-center">
             <div className="text-xs text-indigo-400">右目</div>
