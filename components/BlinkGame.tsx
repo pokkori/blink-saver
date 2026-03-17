@@ -37,6 +37,7 @@ export default function BlinkGame() {
     setElapsed(finalTime);
     setPhase("result");
   }, []);
+
   const loadAndStart = useCallback(async () => {
     setPhase("loading");
     setError(null);
@@ -64,7 +65,7 @@ export default function BlinkGame() {
       setPhase("playing");
     } catch (e) {
       console.error(e);
-      setError("Camera or model failed. Please allow camera access.");
+      setError("カメラへのアクセスを許可してください");
       setPhase("idle");
     }
   }, []);
@@ -122,13 +123,13 @@ export default function BlinkGame() {
             ctx!.font = "bold 20px system-ui";
             ctx!.textAlign = "center";
             ctx!.textBaseline = "middle";
-            ctx!.fillText(currentElapsed.toFixed(2) + "s", canvas!.width / 2, 25);
+            ctx!.fillText(currentElapsed.toFixed(2) + "秒", canvas!.width / 2, 25);
             if (eyeOpen < 0.5) {
               ctx!.fillStyle = "rgba(239,68,68,0.3)";
               ctx!.fillRect(0, 0, canvas!.width, canvas!.height);
               ctx!.fillStyle = "#ef4444";
               ctx!.font = "bold 28px system-ui";
-              ctx!.fillText("\u26a0\ufe0f KEEP OPEN!", canvas!.width / 2, canvas!.height / 2);
+              ctx!.fillText("⚠️ 目を開けて！", canvas!.width / 2, canvas!.height / 2);
             }
           } else {
             ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
@@ -138,11 +139,7 @@ export default function BlinkGame() {
             ctx!.font = "18px system-ui";
             ctx!.textAlign = "center";
             ctx!.textBaseline = "middle";
-            ctx!.fillText(
-              "Face not detected \u2014 move closer",
-              canvas!.width / 2,
-              canvas!.height / 2
-            );
+            ctx!.fillText("顔を検出中... 近づいてください", canvas!.width / 2, canvas!.height / 2);
           }
         } catch {
           /* non-fatal */
@@ -168,23 +165,18 @@ export default function BlinkGame() {
     []
   );
 
-  const formatTime = (s: number) => s.toFixed(2) + "s";
+  const formatTime = (s: number) => s.toFixed(2) + "秒";
   const getRank = (s: number) =>
-    s >= 60
-      ? "\ud83c\udfc6 Legend"
-      : s >= 30
-      ? "\ud83d\udc41\ufe0f Iron Eyes"
-      : s >= 15
-      ? "\ud83d\ude24 Focused"
-      : s >= 5
-      ? "\ud83d\ude42 Beginner"
-      : "\ud83d\ude05 Try Again";
+    s >= 60 ? "🏆 伝説の瞳" :
+    s >= 30 ? "👁️ 鉄の瞳" :
+    s >= 15 ? "😤 集中型" :
+    s >= 5  ? "🙂 初心者" :
+              "😅 練習が必要";
+
   const shareText =
-    "\ud83d\udc41\ufe0f Blink Saver\nI lasted " +
-    formatTime(elapsed) +
-    " without blinking!\n" +
-    getRank(elapsed) +
-    "\nCan you beat me?\n#BlinkSaver";
+    "👁️ まばたき禁止チャレンジ\n" +
+    formatTime(elapsed) + " 耐えました！\n" +
+    getRank(elapsed) + "\nあなたは勝てる？\n#まばたき禁止\nhttps://blink-saver.vercel.app";
   const shareUrl =
     "https://twitter.com/intent/tweet?text=" + encodeURIComponent(shareText);
 
@@ -201,28 +193,25 @@ export default function BlinkGame() {
             border: "1px solid rgba(99,102,241,0.4)",
           }}
         >
-          <div className="text-5xl mb-3">\ud83d\ude33</div>
-          <h2 className="text-xl font-black mb-1 text-indigo-300">YOU BLINKED!</h2>
+          <div className="text-5xl mb-3">😳</div>
+          <h2 className="text-xl font-black mb-1 text-indigo-300">まばたきした！</h2>
           <div className="text-5xl font-black mb-1" style={{ color: "#818cf8" }}>
             {formatTime(elapsed)}
           </div>
           <div className="text-lg font-bold mb-4 text-indigo-300">{getRank(elapsed)}</div>
           {bestTime !== null && elapsed >= bestTime && (
-            <div className="text-yellow-400 font-bold mb-3">\ud83c\udf89 New Record!</div>
+            <div className="text-yellow-400 font-bold mb-3">🎉 新記録！</div>
           )}
           {bestTime !== null && elapsed < bestTime && (
-            <div className="text-indigo-400 text-sm mb-3">Best: {formatTime(bestTime)}</div>
+            <div className="text-indigo-400 text-sm mb-3">ベスト: {formatTime(bestTime)}</div>
           )}
           <div className="space-y-2">
             <button
-              onClick={() => {
-                setPhase("idle");
-                loadAndStart();
-              }}
+              onClick={() => { setPhase("idle"); loadAndStart(); }}
               className="w-full py-3 rounded-xl font-black text-white"
               style={{ background: "linear-gradient(135deg, #6366f1, #4338ca)" }}
             >
-              Try Again \ud83d\udc41\ufe0f
+              もう一度挑戦 👁️
             </button>
             <a
               href={shareUrl}
@@ -234,7 +223,7 @@ export default function BlinkGame() {
               <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
               </svg>
-              Share Score
+              Xでシェア
             </a>
           </div>
         </div>
@@ -248,11 +237,9 @@ export default function BlinkGame() {
       style={{ background: "linear-gradient(160deg, #050510, #0a0a2e)" }}
     >
       <div className="w-full max-w-lg px-3 py-2 flex items-center justify-between">
-        <a href="/" className="text-indigo-600 text-sm">
-          \u2190 Back
-        </a>
+        <a href="/" className="text-indigo-400 text-sm">← 戻る</a>
         <span className="font-black text-base" style={{ color: "#818cf8" }}>
-          \ud83d\udc41\ufe0f Blink Saver
+          👁️ まばたき禁止
         </span>
         <div />
       </div>
@@ -278,25 +265,21 @@ export default function BlinkGame() {
           >
             {phase === "loading" && (
               <div className="text-center">
-                <div className="text-5xl mb-3 animate-pulse">\ud83d\udc41\ufe0f</div>
-                <p className="text-indigo-300 animate-pulse font-bold">
-                  Loading eye tracker...
-                </p>
+                <div className="text-5xl mb-3 animate-pulse">👁️</div>
+                <p className="text-indigo-300 animate-pulse font-bold">カメラ起動中...</p>
               </div>
             )}
             {phase === "idle" && (
               <div className="text-center px-4">
-                <div className="text-6xl mb-3">\ud83d\udc41\ufe0f</div>
-                <h1
-                  className="text-2xl font-black mb-3"
-                  style={{ color: "#818cf8" }}
-                >
-                  Blink Saver
+                <div className="text-6xl mb-3">👁️</div>
+                <h1 className="text-2xl font-black mb-1" style={{ color: "#818cf8" }}>
+                  まばたき禁止
                 </h1>
+                <p className="text-indigo-400 text-sm mb-4">何秒耐えられる？</p>
                 {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
                 {bestTime && (
                   <p className="text-indigo-400 text-sm mb-3">
-                    Best: {formatTime(bestTime)}
+                    ベスト: {formatTime(bestTime)}
                   </p>
                 )}
                 <button
@@ -307,7 +290,7 @@ export default function BlinkGame() {
                     boxShadow: "0 0 20px rgba(99,102,241,0.5)",
                   }}
                 >
-                  Start Staring \ud83d\udc41\ufe0f
+                  スタート 👁️
                 </button>
               </div>
             )}
@@ -317,38 +300,24 @@ export default function BlinkGame() {
       {phase === "playing" && (
         <div className="w-full max-w-lg px-4 py-3 flex gap-4 justify-center">
           <div className="text-center">
-            <div className="text-xs text-indigo-400">Left Eye</div>
-            <div
-              className="w-20 h-2 rounded-full overflow-hidden mt-1"
-              style={{ background: "rgba(255,255,255,0.1)" }}
-            >
-              <div
-                className="h-full rounded-full"
-                style={{
-                  width: (1 - leftBlink) * 100 + "%",
-                  background: 1 - leftBlink > 0.6 ? "#22c55e" : "#ef4444",
-                }}
-              />
+            <div className="text-xs text-indigo-400">左目</div>
+            <div className="w-20 h-2 rounded-full overflow-hidden mt-1"
+              style={{ background: "rgba(255,255,255,0.1)" }}>
+              <div className="h-full rounded-full"
+                style={{ width: (1 - leftBlink) * 100 + "%", background: 1 - leftBlink > 0.6 ? "#22c55e" : "#ef4444" }} />
             </div>
           </div>
           <div className="text-center">
             <div className="text-4xl font-black" style={{ color: "#818cf8" }}>
-              {elapsed.toFixed(2)}s
+              {elapsed.toFixed(2)}秒
             </div>
           </div>
           <div className="text-center">
-            <div className="text-xs text-indigo-400">Right Eye</div>
-            <div
-              className="w-20 h-2 rounded-full overflow-hidden mt-1"
-              style={{ background: "rgba(255,255,255,0.1)" }}
-            >
-              <div
-                className="h-full rounded-full"
-                style={{
-                  width: (1 - rightBlink) * 100 + "%",
-                  background: 1 - rightBlink > 0.6 ? "#22c55e" : "#ef4444",
-                }}
-              />
+            <div className="text-xs text-indigo-400">右目</div>
+            <div className="w-20 h-2 rounded-full overflow-hidden mt-1"
+              style={{ background: "rgba(255,255,255,0.1)" }}>
+              <div className="h-full rounded-full"
+                style={{ width: (1 - rightBlink) * 100 + "%", background: 1 - rightBlink > 0.6 ? "#22c55e" : "#ef4444" }} />
             </div>
           </div>
         </div>
