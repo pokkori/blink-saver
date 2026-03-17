@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useGameSounds } from "@/hooks/useGameSounds";
 
 const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
 const MODEL_URL =
@@ -15,6 +16,8 @@ export default function BlinkGame() {
   const isRunningRef = useRef(false);
 
   const [phase, setPhase] = useState<"idle" | "loading" | "playing" | "result">("idle");
+  const { playStart, playWarning, playBlink, playNewRecord } = useGameSounds();
+  const warnCooldownRef = useRef(0);
   const [error, setError] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [bestTime, setBestTime] = useState<number | null>(null);
@@ -33,10 +36,13 @@ export default function BlinkGame() {
     if (finalTime > prevBest) {
       localStorage.setItem("blink_saver_best", String(finalTime));
       setBestTime(finalTime);
+      playNewRecord();
+    } else {
+      playBlink();
     }
     setElapsed(finalTime);
     setPhase("result");
-  }, []);
+  }, [playBlink, playNewRecord]);
 
   const loadAndStart = useCallback(async () => {
     setPhase("loading");
@@ -63,12 +69,13 @@ export default function BlinkGame() {
       isRunningRef.current = true;
       setElapsed(0);
       setPhase("playing");
+      playStart();
     } catch (e) {
       console.error(e);
       setError("カメラへのアクセスを許可してください");
       setPhase("idle");
     }
-  }, []);
+  }, [playStart]);
 
   useEffect(() => {
     if (phase !== "playing") return;
@@ -130,6 +137,10 @@ export default function BlinkGame() {
               ctx!.fillStyle = "#ef4444";
               ctx!.font = "bold 28px system-ui";
               ctx!.fillText("⚠️ 目を開けて！", canvas!.width / 2, canvas!.height / 2);
+              if (now - warnCooldownRef.current > 800) {
+                playWarning();
+                warnCooldownRef.current = now;
+              }
             }
           } else {
             ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
