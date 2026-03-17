@@ -6,22 +6,22 @@ export default function HomePage() {
       <div className="text-center mb-8">
         <div className="text-8xl mb-4" style={{ filter: "drop-shadow(0 0 24px rgba(99,102,241,0.8))" }}>👁️</div>
         <h1 className="text-4xl font-black mb-2" style={{ color: "#818cf8", textShadow: "0 0 20px rgba(129,140,248,0.5)" }}>
-          Blink Saver
+          まばたき禁止
         </h1>
-        <p className="text-lg text-indigo-300 font-bold mb-1">Don&apos;t you dare blink!</p>
-        <p className="text-sm text-indigo-500">AI watches your eyes. One blink = game over.</p>
+        <p className="text-lg text-indigo-300 font-bold mb-1">まばたきしたら終わり！</p>
+        <p className="text-sm text-indigo-500">AIがあなたの目を監視。一瞬でもまばたきすればゲームオーバー。</p>
       </div>
       <Link href="/game"
         className="inline-block px-14 py-4 rounded-2xl text-xl font-black mb-10 transition-all active:scale-95"
         style={{ background: "linear-gradient(135deg, #6366f1, #4338ca)", boxShadow: "0 0 30px rgba(99,102,241,0.5)", color: "#fff" }}>
-        Stare Contest 👁️
+        スタート 👁️
       </Link>
       <div className="w-full max-w-sm space-y-3">
         {[
-          { icon: "📷", title: "Allow camera", desc: "AI watches your eyes in real-time" },
-          { icon: "👁️", title: "Keep eyes open", desc: "Don't blink — the timer is counting!" },
-          { icon: "😳", title: "Blink = Game Over", desc: "One blink ends the run immediately" },
-          { icon: "🏆", title: "Beat your record", desc: "Can you last 30 seconds? 1 minute?" },
+          { icon: "📷", title: "カメラを許可する", desc: "AIがリアルタイムで目の動きを分析" },
+          { icon: "👁️", title: "目を開き続ける", desc: "まばたきしないで！タイマーが刻んでいく" },
+          { icon: "😳", title: "まばたき = ゲームオーバー", desc: "一瞬でも目を閉じたら即終了" },
+          { icon: "🏆", title: "記録を更新しよう", desc: "30秒？1分？どこまで耐えられるか挑戦！" },
         ].map((item, i) => (
           <div key={i} className="flex gap-3 items-center p-3 rounded-xl"
             style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)" }}>

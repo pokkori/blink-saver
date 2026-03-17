@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import "./globals.css";
 export const metadata: Metadata = {
-  title: "👁️ Blink Saver | Don't you dare blink!",
-  description: "How long can you go without blinking? AI watches your eyes. One blink and it's over!",
+  title: "👁️ まばたき禁止 | まばたきしたら終わり！",
+  description: "何秒まばたきせずに耐えられる？AIがあなたの目をリアルタイム監視。一瞬でもまばたきしたらゲームオーバー！",
+  openGraph: {
+    title: "👁️ まばたき禁止",
+    description: "AIがあなたの目を監視。まばたきしたら即ゲームオーバー！何秒耐えられる？",
+    type: "website",
+  },
 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="en"><body>{children}</body></html>;
+  return <html lang="ja"><body>{children}</body></html>;
 }
