@@ -205,7 +205,7 @@ export default function BlinkGame() {
     s >= 5  ? "🙂 初心者" :
               "😅 練習が必要";
 
-  const challengeUrl = "https://blink-saver.vercel.app/game?challenge=" + elapsed.toFixed(2);
+  const challengeUrl = "https://mabataki-kinshi.vercel.app/game?challenge=" + elapsed.toFixed(2);
   const challengeResult = challengeTime !== null
     ? (elapsed >= challengeTime ? "勝ち！🎉" : "負け...😢")
     : null;
@@ -214,9 +214,7 @@ export default function BlinkGame() {
     : null;
 
   const shareText =
-    "👁️ まばたき禁止チャレンジ\n" +
-    formatTime(elapsed) + " 耐えました！\n" +
-    getRank(elapsed) + "\nあなたは勝てる？\n#まばたき禁止\n" + challengeUrl;
+    "【まばたき禁止】" + elapsed.toFixed(2) + "秒耐えた！あなたは何秒耐えられる？ → https://mabataki-kinshi.vercel.app #まばたき禁止 #反射神経 #AIカメラゲーム";
   const shareUrl =
     "https://twitter.com/intent/tweet?text=" + encodeURIComponent(shareText);
 
@@ -265,13 +263,12 @@ export default function BlinkGame() {
               href={shareUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full py-3 rounded-xl font-bold text-white flex items-center justify-center gap-2"
-              style={{ background: "#1a1a1a", display: "flex" }}
+              className="w-full bg-sky-500 hover:bg-sky-400 text-white font-bold px-8 py-3 rounded-2xl text-lg flex items-center justify-center gap-2 transition-colors"
             >
-              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
+              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
               </svg>
-              友達に挑戦状を送る
+              Xでシェアして自慢する
             </a>
           </div>
         </div>
