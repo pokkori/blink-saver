@@ -233,7 +233,7 @@ export default function BlinkGame() {
             border: "1px solid rgba(99,102,241,0.4)",
           }}
         >
-          <div className="text-5xl mb-3">😳</div>
+          <img src="/images/eye_blink.png" alt="" className="w-16 h-16 mx-auto mb-3" />
           <h2 className="text-xl font-black mb-1 text-indigo-300">まばたきした！</h2>
           <div className="text-5xl font-black mb-1" style={{ color: "#818cf8" }}>
             {formatTime(elapsed)}
@@ -287,7 +287,7 @@ export default function BlinkGame() {
       <div className="w-full max-w-lg px-3 py-2 flex items-center justify-between">
         <a href="/" className="text-indigo-400 text-sm">← 戻る</a>
         <span className="font-black text-base" style={{ color: "#818cf8" }}>
-          👁️ まばたき禁止
+          <img src="/images/eye_open.png" alt="" className="w-5 h-5 inline mr-1" /> まばたき禁止
         </span>
         <div />
       </div>
@@ -313,13 +313,13 @@ export default function BlinkGame() {
           >
             {phase === "loading" && (
               <div className="text-center">
-                <div className="text-5xl mb-3 animate-pulse">👁️</div>
+                <img src="/images/eye_open.png" alt="" className="w-16 h-16 mx-auto mb-3 animate-pulse" />
                 <p className="text-indigo-300 animate-pulse font-bold">カメラ起動中...</p>
               </div>
             )}
             {phase === "idle" && (
               <div className="text-center px-4">
-                <div className="text-6xl mb-3">👁️</div>
+                <img src="/images/eye_open.png" alt="" className="w-20 h-20 mx-auto mb-3" />
                 <h1 className="text-2xl font-black mb-1" style={{ color: "#818cf8" }}>
                   まばたき禁止
                 </h1>

@@ -4,7 +4,7 @@ export default function HomePage() {
     <div className="min-h-dvh flex flex-col items-center justify-center px-4 py-12"
       style={{ background: "linear-gradient(160deg, #050510, #0a0a2e, #050510)" }}>
       <div className="text-center mb-8">
-        <div className="text-8xl mb-4" style={{ filter: "drop-shadow(0 0 24px rgba(99,102,241,0.8))" }}>👁️</div>
+        <img src="/images/eye_open.png" alt="まばたき禁止" className="w-28 h-28 mx-auto mb-4" style={{ filter: "drop-shadow(0 0 24px rgba(99,102,241,0.8))" }} />
         <h1 className="text-4xl font-black mb-2" style={{ color: "#818cf8", textShadow: "0 0 20px rgba(129,140,248,0.5)" }}>
           まばたき禁止
         </h1>
