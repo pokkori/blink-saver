@@ -17,6 +17,17 @@ export default function HomePage() {
         style={{ background: "linear-gradient(135deg, #6366f1, #4338ca)", boxShadow: "0 0 30px rgba(99,102,241,0.5)", color: "#fff" }}>
         スタート 👁️
       </Link>
+      <a
+        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent("まばたき禁止に挑戦！AIがリアルタイムで目を監視。何秒耐えられる？ #まばたき禁止 #カジュアルゲーム https://mabataki-kinshi.vercel.app")}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm mb-8 min-h-[44px] transition-all hover:opacity-80"
+        style={{ background: "#000", color: "#fff", border: "1px solid rgba(99,102,241,0.4)" }}
+        aria-label="まばたき禁止をXでシェアする"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+        Xでシェアする
+      </a>
       <div className="w-full max-w-sm space-y-3">
         {[
           { icon: "📷", title: "カメラを許可する", desc: "AIがリアルタイムで目の動きを分析" },
@@ -38,6 +49,11 @@ export default function HomePage() {
         <p>© 2026 ポッコリラボ</p>
         <p className="mt-1">
           <a href="https://twitter.com/levona_design" className="underline hover:text-indigo-700" aria-label="Xでお問い合わせ（@levona_design）">お問い合わせ: X @levona_design</a>
+        </p>
+        <p className="mt-2 space-x-3">
+          <a href="/privacy" className="underline hover:text-indigo-700" aria-label="プライバシーポリシーを見る">プライバシーポリシー</a>
+          <span>|</span>
+          <a href="/legal" className="underline hover:text-indigo-700" aria-label="特定商取引法に基づく表記を見る">特商法表記</a>
         </p>
       </footer>
     </div>
