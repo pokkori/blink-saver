@@ -1,5 +1,23 @@
+"use client";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 export default function HomePage() {
+  const [streak, setStreak] = useState(0);
+  useEffect(() => {
+    const today = new Date().toDateString();
+    const data = JSON.parse(localStorage.getItem('mabataki_streak') || '{"count":0,"last":""}');
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    if (data.last === today) setStreak(data.count);
+    else if (data.last === yesterday) {
+      const updated = { count: data.count + 1, last: today };
+      localStorage.setItem('mabataki_streak', JSON.stringify(updated));
+      setStreak(updated.count);
+    } else {
+      const updated = { count: 1, last: today };
+      localStorage.setItem('mabataki_streak', JSON.stringify(updated));
+      setStreak(1);
+    }
+  }, []);
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center px-4 py-12"
       style={{ background: "linear-gradient(160deg, #050510, #0a0a2e, #050510)" }}>
@@ -11,6 +29,7 @@ export default function HomePage() {
         <p className="text-lg text-indigo-300 font-bold mb-1">まばたきしたら終わり！</p>
         <p className="text-sm text-indigo-500">AIがあなたの目を監視。一瞬でもまばたきすればゲームオーバー。</p>
       </div>
+      {streak > 1 && <div className="text-center text-sm text-orange-400 mb-4">🔥 {streak}日連続プレイ中!</div>}
       <Link href="/game"
         className="inline-block px-14 py-4 rounded-2xl text-xl font-black mb-10 transition-all active:scale-95 min-h-[44px]"
         aria-label="まばたき禁止ゲームを開始する"
