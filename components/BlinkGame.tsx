@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useGameSounds } from "@/hooks/useGameSounds";
+import { updateStreak, loadStreak, getStreakMilestoneMessage, type StreakData } from "@/lib/streak";
 
 const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
 const MODEL_URL =
@@ -29,10 +30,12 @@ export default function BlinkGame() {
   const [bestTime, setBestTime] = useState<number | null>(null);
   const [leftBlink, setLeftBlink] = useState(0);
   const [rightBlink, setRightBlink] = useState(0);
+  const [streakData, setStreakData] = useState<StreakData | null>(null);
 
   useEffect(() => {
     const bt = localStorage.getItem("blink_saver_best");
     if (bt) setBestTime(parseFloat(bt));
+    setStreakData(loadStreak("mabataki"));
   }, []);
 
   /* Stop the old camera stream before starting a new one */
@@ -54,6 +57,8 @@ export default function BlinkGame() {
     } else {
       playBlink();
     }
+    const updated = updateStreak("mabataki");
+    setStreakData(updated);
     setElapsed(finalTime);
     setPhase("result");
   }, [playBlink, playNewRecord]);
@@ -330,6 +335,15 @@ export default function BlinkGame() {
                       {challengeTime.toFixed(1)}秒の記録に挑戦！
                     </p>
                     <p className="text-yellow-600 text-xs">友達からの挑戦状</p>
+                  </div>
+                )}
+                {streakData && streakData.count > 0 && (
+                  <div className="mb-3 px-4 py-2 rounded-xl"
+                    style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)" }}>
+                    <p className="text-indigo-300 font-bold text-sm">{streakData.count}日連続プレイ中</p>
+                    {getStreakMilestoneMessage(streakData.count) && (
+                      <p className="text-yellow-400 text-xs mt-0.5">{getStreakMilestoneMessage(streakData.count)}</p>
+                    )}
                   </div>
                 )}
                 {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
