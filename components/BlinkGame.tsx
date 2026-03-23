@@ -254,7 +254,8 @@ export default function BlinkGame() {
           <div className="space-y-2">
             <button
               onClick={loadAndStart}
-              className="w-full py-3 rounded-xl font-black text-white"
+              className="w-full py-3 rounded-xl font-black text-white min-h-[44px]"
+              aria-label="もう一度まばたき禁止に挑戦する"
               style={{ background: "linear-gradient(135deg, #6366f1, #4338ca)" }}
             >
               もう一度挑戦 👁️
@@ -263,6 +264,7 @@ export default function BlinkGame() {
               href={shareUrl}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Xで記録をシェアして自慢する"
               className="w-full bg-sky-500 hover:bg-sky-400 text-white font-bold px-8 py-3 rounded-2xl text-lg flex items-center justify-center gap-2 transition-colors"
             >
               <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
@@ -282,7 +284,7 @@ export default function BlinkGame() {
       style={{ background: "linear-gradient(160deg, #050510, #0a0a2e)" }}
     >
       <div className="w-full max-w-lg px-3 py-2 flex items-center justify-between">
-        <a href="/" className="text-indigo-400 text-sm">← 戻る</a>
+        <a href="/" className="text-indigo-400 text-sm min-h-[44px] inline-flex items-center" aria-label="トップページに戻る">← 戻る</a>
         <span className="font-black text-base" style={{ color: "#818cf8" }}>
           <img src="/images/eye_open.png" alt="" className="w-5 h-5 inline mr-1" /> まばたき禁止
         </span>
@@ -338,7 +340,8 @@ export default function BlinkGame() {
                 )}
                 <button
                   onClick={loadAndStart}
-                  className="px-10 py-3 rounded-2xl font-black text-white text-lg"
+                  className="px-10 py-3 rounded-2xl font-black text-white text-lg min-h-[44px]"
+                  aria-label="カメラを起動してまばたき禁止ゲームを開始する"
                   style={{
                     background: "linear-gradient(135deg, #6366f1, #4338ca)",
                     boxShadow: "0 0 20px rgba(99,102,241,0.5)",

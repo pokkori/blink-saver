@@ -12,7 +12,8 @@ export default function HomePage() {
         <p className="text-sm text-indigo-500">AIがあなたの目を監視。一瞬でもまばたきすればゲームオーバー。</p>
       </div>
       <Link href="/game"
-        className="inline-block px-14 py-4 rounded-2xl text-xl font-black mb-10 transition-all active:scale-95"
+        className="inline-block px-14 py-4 rounded-2xl text-xl font-black mb-10 transition-all active:scale-95 min-h-[44px]"
+        aria-label="まばたき禁止ゲームを開始する"
         style={{ background: "linear-gradient(135deg, #6366f1, #4338ca)", boxShadow: "0 0 30px rgba(99,102,241,0.5)", color: "#fff" }}>
         スタート 👁️
       </Link>
@@ -36,7 +37,7 @@ export default function HomePage() {
       <footer className="mt-10 text-center text-xs text-indigo-900 pb-6">
         <p>© 2026 ポッコリラボ</p>
         <p className="mt-1">
-          <a href="https://twitter.com/levona_design" className="underline hover:text-indigo-700">お問い合わせ: X @levona_design</a>
+          <a href="https://twitter.com/levona_design" className="underline hover:text-indigo-700" aria-label="Xでお問い合わせ（@levona_design）">お問い合わせ: X @levona_design</a>
         </p>
       </footer>
     </div>
