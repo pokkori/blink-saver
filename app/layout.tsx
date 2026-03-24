@@ -13,6 +13,13 @@ export const metadata: Metadata = {
     description: "AIがあなたの目を監視。まばたきしたら即ゲームオーバー！何秒耐えられる？",
     type: "website",
     url: SITE_URL,
+    images: [{ url: `${SITE_URL}/og.svg`, width: 1200, height: 630, alt: "まばたき禁止" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "️ まばたき禁止",
+    description: "AIがあなたの目を監視。まばたきしたら即ゲームオーバー！何秒耐えられる？",
+    images: [`${SITE_URL}/og.svg`],
   },
 };
 const jsonLd = {
