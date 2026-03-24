@@ -163,7 +163,7 @@ export default function BlinkGame() {
               ctx!.fillRect(0, 0, canvas!.width, canvas!.height);
               ctx!.fillStyle = "#ef4444";
               ctx!.font = "bold 28px system-ui";
-              ctx!.fillText("⚠️ 目を開けて！", canvas!.width / 2, canvas!.height / 2);
+              ctx!.fillText("️ 目を開けて！", canvas!.width / 2, canvas!.height / 2);
               if (now - warnCooldownRef.current > 800) {
                 playWarning();
                 warnCooldownRef.current = now;
@@ -204,15 +204,15 @@ export default function BlinkGame() {
 
   const formatTime = (s: number) => s.toFixed(2) + "秒";
   const getRank = (s: number) =>
-    s >= 60 ? "🏆 伝説の瞳" :
-    s >= 30 ? "👁️ 鉄の瞳" :
-    s >= 15 ? "😤 集中型" :
-    s >= 5  ? "🙂 初心者" :
-              "😅 練習が必要";
+    s >= 60 ? " 伝説の瞳" :
+    s >= 30 ? "️ 鉄の瞳" :
+    s >= 15 ? " 集中型" :
+    s >= 5  ? " 初心者" :
+              " 練習が必要";
 
   const challengeUrl = "https://mabataki-kinshi.vercel.app/game?challenge=" + elapsed.toFixed(2);
   const challengeResult = challengeTime !== null
-    ? (elapsed >= challengeTime ? "勝ち！🎉" : "負け...😢")
+    ? (elapsed >= challengeTime ? "勝ち！" : "負け...")
     : null;
   const challengeDiff = challengeTime !== null
     ? elapsed - challengeTime
@@ -251,7 +251,7 @@ export default function BlinkGame() {
             </div>
           )}
           {bestTime !== null && elapsed >= bestTime && (
-            <div className="text-yellow-400 font-bold mb-3">🎉 新記録！</div>
+            <div className="text-yellow-400 font-bold mb-3"> 新記録！</div>
           )}
           {bestTime !== null && elapsed < bestTime && (
             <div className="text-indigo-400 text-sm mb-3">ベスト: {formatTime(bestTime)}</div>
@@ -263,7 +263,7 @@ export default function BlinkGame() {
               aria-label="もう一度まばたき禁止に挑戦する"
               style={{ background: "linear-gradient(135deg, #6366f1, #4338ca)" }}
             >
-              もう一度挑戦 👁️
+              もう一度挑戦 ️
             </button>
             <a
               href={shareUrl}
@@ -361,7 +361,7 @@ export default function BlinkGame() {
                     boxShadow: "0 0 20px rgba(99,102,241,0.5)",
                   }}
                 >
-                  スタート 👁️
+                  スタート ️
                 </button>
               </div>
             )}

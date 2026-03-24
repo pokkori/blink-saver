@@ -22,7 +22,7 @@ export default function HomePage() {
     <div className="min-h-dvh flex flex-col items-center justify-center px-4 py-12"
       style={{ background: "linear-gradient(160deg, #050510, #0a0a2e, #050510)" }}>
       <div className="text-center mb-8 p-6 rounded-3xl"
-        style={{ background: "rgba(99,102,241,0.07)", border: "1px solid rgba(99,102,241,0.18)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}>
+        style={{ background: "rgba(255,255,255,0.08)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", border: "1px solid rgba(99,102,241,0.25)", borderRadius: "24px" }}>
         <img src="/images/eye_open.png" alt="まばたき禁止" className="w-28 h-28 mx-auto mb-4" style={{ filter: "drop-shadow(0 0 24px rgba(99,102,241,0.8))" }} />
         <h1 className="text-4xl font-black mb-2" style={{ color: "#818cf8", textShadow: "0 0 20px rgba(129,140,248,0.5)" }}>
           まばたき禁止
@@ -61,7 +61,7 @@ export default function HomePage() {
           { num: "4", title: "記録を更新しよう", desc: "30秒？1分？どこまで耐えられるか挑戦！" },
         ].map((item, i) => (
           <div key={i} className="flex gap-3 items-center p-3 rounded-xl"
-            style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}>
+            style={{ background: "rgba(255,255,255,0.08)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", border: "1px solid rgba(99,102,241,0.22)", borderRadius: "12px" }}>
             <span className="text-xl font-black text-indigo-400 w-8 text-center">{item.num}</span>
             <div>
               <div className="font-bold text-indigo-200 text-sm">{item.title}</div>
