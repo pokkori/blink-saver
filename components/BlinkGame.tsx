@@ -2,7 +2,10 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useGameSounds } from "@/hooks/useGameSounds";
+import { useBlinkBGM } from "@/hooks/useBlinkBGM";
 import { updateStreak, loadStreak, getStreakMilestoneMessage, type StreakData } from "@/lib/streak";
+import OrbBackground from "@/components/OrbBackground";
+import EyeMascot, { type EyePose } from "@/components/EyeMascot";
 
 const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
 const MODEL_URL =
@@ -24,6 +27,7 @@ export default function BlinkGame() {
 
   const [phase, setPhase] = useState<"idle" | "loading" | "playing" | "result">("idle");
   const { playStart, playWarning, playBlink, playNewRecord } = useGameSounds();
+  const { startBGM, stopBGM } = useBlinkBGM();
   const warnCooldownRef = useRef(0);
   const [error, setError] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
@@ -31,6 +35,7 @@ export default function BlinkGame() {
   const [leftBlink, setLeftBlink] = useState(0);
   const [rightBlink, setRightBlink] = useState(0);
   const [streakData, setStreakData] = useState<StreakData | null>(null);
+  const [mascotPose, setMascotPose] = useState<EyePose>("idle");
 
   useEffect(() => {
     const bt = localStorage.getItem("blink_saver_best");
@@ -38,7 +43,6 @@ export default function BlinkGame() {
     setStreakData(loadStreak("mabataki"));
   }, []);
 
-  /* Stop the old camera stream before starting a new one */
   const stopStream = useCallback(() => {
     if (videoRef.current?.srcObject) {
       (videoRef.current.srcObject as MediaStream).getTracks().forEach((t) => t.stop());
@@ -49,6 +53,8 @@ export default function BlinkGame() {
   const endGame = useCallback((finalTime: number) => {
     isRunningRef.current = false;
     cancelAnimationFrame(rafRef.current);
+    stopBGM();
+    setMascotPose("dead");
     const prevBest = parseFloat(localStorage.getItem("blink_saver_best") ?? "0");
     if (finalTime > prevBest) {
       localStorage.setItem("blink_saver_best", String(finalTime));
@@ -61,15 +67,16 @@ export default function BlinkGame() {
     setStreakData(updated);
     setElapsed(finalTime);
     setPhase("result");
-  }, [playBlink, playNewRecord]);
+  }, [playBlink, playNewRecord, stopBGM]);
 
   const loadAndStart = useCallback(async () => {
-    /* Cancel any in-flight animation loop and stop old stream first */
     isRunningRef.current = false;
     cancelAnimationFrame(rafRef.current);
     stopStream();
+    stopBGM();
 
     setPhase("loading");
+    setMascotPose("idle");
     setError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -79,7 +86,6 @@ export default function BlinkGame() {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
       }
-      /* Reuse existing landmarker if available */
       if (!landmarkerRef.current) {
         const vision = await import("@mediapipe/tasks-vision");
         const { FaceLandmarker, FilesetResolver } = vision;
@@ -95,14 +101,17 @@ export default function BlinkGame() {
       startTimeRef.current = performance.now();
       isRunningRef.current = true;
       setElapsed(0);
+      setMascotPose("alert");
       setPhase("playing");
       playStart();
+      startBGM();
     } catch (e) {
       console.error(e);
       setError("カメラへのアクセスを許可してください");
       setPhase("idle");
+      setMascotPose("idle");
     }
-  }, [playStart, stopStream]);
+  }, [playStart, stopStream, stopBGM, startBGM]);
 
   useEffect(() => {
     if (phase !== "playing") return;
@@ -159,15 +168,18 @@ export default function BlinkGame() {
             ctx!.textBaseline = "middle";
             ctx!.fillText(currentElapsed.toFixed(2) + "秒", canvas!.width / 2, 25);
             if (eyeOpen < 0.5) {
+              setMascotPose("blink");
               ctx!.fillStyle = "rgba(239,68,68,0.3)";
               ctx!.fillRect(0, 0, canvas!.width, canvas!.height);
               ctx!.fillStyle = "#ef4444";
               ctx!.font = "bold 28px system-ui";
-              ctx!.fillText("️ 目を開けて！", canvas!.width / 2, canvas!.height / 2);
+              ctx!.fillText("目を開けて！", canvas!.width / 2, canvas!.height / 2);
               if (now - warnCooldownRef.current > 800) {
                 playWarning();
                 warnCooldownRef.current = now;
               }
+            } else {
+              setMascotPose("alert");
             }
           } else {
             ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
@@ -198,17 +210,18 @@ export default function BlinkGame() {
       cancelAnimationFrame(rafRef.current);
       isRunningRef.current = false;
       stopStream();
+      stopBGM();
     },
-    [stopStream]
+    [stopStream, stopBGM]
   );
 
   const formatTime = (s: number) => s.toFixed(2) + "秒";
   const getRank = (s: number) =>
-    s >= 60 ? " 伝説の瞳" :
-    s >= 30 ? "️ 鉄の瞳" :
-    s >= 15 ? " 集中型" :
-    s >= 5  ? " 初心者" :
-              " 練習が必要";
+    s >= 60 ? "伝説の瞳" :
+    s >= 30 ? "鉄の瞳" :
+    s >= 15 ? "集中型" :
+    s >= 5  ? "初心者" :
+              "練習が必要";
 
   const challengeUrl = "https://mabataki-kinshi.vercel.app/game?challenge=" + elapsed.toFixed(2);
   const challengeResult = challengeTime !== null
@@ -227,18 +240,26 @@ export default function BlinkGame() {
     return (
       <div
         className="min-h-dvh flex items-center justify-center px-4"
-        style={{ background: "linear-gradient(160deg, #050510, #0a0a2e)" }}
+        style={{ background: "linear-gradient(160deg, #0a0f1e, #050510, #0a0a2e)" }}
       >
+        <OrbBackground />
         <div
-          className="w-full max-w-sm rounded-2xl p-6 text-center"
+          className="w-full max-w-sm rounded-2xl p-6 text-center relative z-10"
           style={{
-            background: "rgba(99,102,241,0.1)",
-            border: "1px solid rgba(99,102,241,0.4)",
+            background: "rgba(255,255,255,0.05)",
+            backdropFilter: "blur(16px)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            boxShadow: "0 0 30px rgba(14,165,233,0.15)",
           }}
         >
-          <img src="/images/eye_blink.png" alt="" className="w-16 h-16 mx-auto mb-3" />
+          <div className="flex justify-center mb-3">
+            <EyeMascot pose="dead" size={72} />
+          </div>
           <h2 className="text-xl font-black mb-1 text-indigo-300">まばたきした！</h2>
-          <div className="text-5xl font-black mb-1" style={{ color: "#818cf8" }}>
+          <div
+            className="text-5xl font-black mb-1"
+            style={{ color: "#818cf8", textShadow: "0 0 20px rgba(129,140,248,0.7)" }}
+          >
             {formatTime(elapsed)}
           </div>
           <div className="text-lg font-bold mb-4 text-indigo-300">{getRank(elapsed)}</div>
@@ -251,28 +272,54 @@ export default function BlinkGame() {
             </div>
           )}
           {bestTime !== null && elapsed >= bestTime && (
-            <div className="text-yellow-400 font-bold mb-3"> 新記録！</div>
+            <div
+              className="text-yellow-400 font-bold mb-3"
+              style={{ textShadow: "0 0 12px rgba(234,179,8,0.8)" }}
+            >
+              新記録！
+            </div>
           )}
           {bestTime !== null && elapsed < bestTime && (
-            <div className="text-indigo-400 text-sm mb-3">ベスト: {formatTime(bestTime)}</div>
+            <div className="text-indigo-400 text-sm mb-3">
+              ベスト: {formatTime(bestTime)}
+              <span className="block text-xs mt-0.5 text-indigo-500">
+                あと{(bestTime - elapsed).toFixed(2)}秒で自己ベスト更新！
+              </span>
+            </div>
           )}
           <div className="space-y-2">
             <button
               onClick={loadAndStart}
               className="w-full py-3 rounded-xl font-black text-white min-h-[44px]"
               aria-label="もう一度まばたき禁止に挑戦する"
-              style={{ background: "linear-gradient(135deg, #6366f1, #4338ca)" }}
+              style={{
+                background: "linear-gradient(135deg, #6366f1, #4338ca)",
+                boxShadow: "0 0 20px rgba(99,102,241,0.5)",
+              }}
             >
-              もう一度挑戦 ️
+              もう一度挑戦
+            </button>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(challengeUrl).catch(() => {});
+              }}
+              className="w-full py-2 rounded-xl font-bold text-indigo-300 min-h-[44px]"
+              aria-label="挑戦URLをコピーして友達に送る"
+              style={{
+                background: "rgba(99,102,241,0.1)",
+                border: "1px solid rgba(99,102,241,0.3)",
+              }}
+            >
+              友達に挑戦状を送る
             </button>
             <a
               href={shareUrl}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Xで記録をシェアして自慢する"
-              className="w-full bg-sky-500 hover:bg-sky-400 text-white font-bold px-8 py-3 rounded-2xl text-lg flex items-center justify-center gap-2 transition-colors"
+              className="w-full bg-sky-500 hover:bg-sky-400 text-white font-bold px-8 py-3 rounded-2xl text-lg flex items-center justify-center gap-2 transition-colors min-h-[44px]"
             >
-              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
+              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" aria-hidden="true">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
               </svg>
               Xでシェアして自慢する
@@ -286,16 +333,20 @@ export default function BlinkGame() {
   return (
     <div
       className="min-h-dvh flex flex-col items-center"
-      style={{ background: "linear-gradient(160deg, #050510, #0a0a2e)" }}
+      style={{ background: "linear-gradient(160deg, #0a0f1e, #050510, #0a0a2e)" }}
     >
-      <div className="w-full max-w-lg px-3 py-2 flex items-center justify-between">
-        <a href="/" className="text-indigo-400 text-sm min-h-[44px] inline-flex items-center" aria-label="トップページに戻る">← 戻る</a>
-        <span className="font-black text-base" style={{ color: "#818cf8" }}>
-          <img src="/images/eye_open.png" alt="" className="w-5 h-5 inline mr-1" /> まばたき禁止
+      <OrbBackground />
+      <div className="w-full max-w-lg px-3 py-2 flex items-center justify-between relative z-10">
+        <a href="/" className="text-indigo-400 text-sm min-h-[44px] inline-flex items-center" aria-label="トップページに戻る">
+          ← 戻る
+        </a>
+        <span className="font-black text-base flex items-center gap-2" style={{ color: "#818cf8" }}>
+          <EyeMascot pose={mascotPose} size={24} />
+          まばたき禁止
         </span>
         <div />
       </div>
-      <div className="relative w-full max-w-lg" style={{ aspectRatio: "4/3" }}>
+      <div className="relative w-full max-w-lg z-10" style={{ aspectRatio: "4/3" }}>
         <video
           ref={videoRef}
           className="absolute inset-0 w-full h-full object-cover"
@@ -313,24 +364,37 @@ export default function BlinkGame() {
         {phase !== "playing" && (
           <div
             className="absolute inset-0 flex flex-col items-center justify-center"
-            style={{ background: "rgba(0,0,0,0.9)" }}
+            style={{
+              background: "rgba(0,0,0,0.88)",
+              backdropFilter: "blur(4px)",
+            }}
           >
             {phase === "loading" && (
               <div className="text-center">
-                <img src="/images/eye_open.png" alt="" className="w-16 h-16 mx-auto mb-3 animate-pulse" />
+                <div className="flex justify-center mb-3">
+                  <EyeMascot pose="idle" size={64} />
+                </div>
                 <p className="text-indigo-300 animate-pulse font-bold">カメラ起動中...</p>
               </div>
             )}
             {phase === "idle" && (
               <div className="text-center px-4">
-                <img src="/images/eye_open.png" alt="" className="w-20 h-20 mx-auto mb-3" />
-                <h1 className="text-2xl font-black mb-1" style={{ color: "#818cf8" }}>
+                <div className="flex justify-center mb-3">
+                  <EyeMascot pose={mascotPose} size={80} />
+                </div>
+                <h1 className="text-2xl font-black mb-1" style={{ color: "#818cf8", textShadow: "0 0 16px rgba(129,140,248,0.7)" }}>
                   まばたき禁止
                 </h1>
                 <p className="text-indigo-400 text-sm mb-4">何秒耐えられる？</p>
                 {challengeTime !== null && (
-                  <div className="mb-4 px-4 py-2 rounded-xl animate-pulse"
-                    style={{ background: "rgba(234,179,8,0.15)", border: "1px solid rgba(234,179,8,0.4)" }}>
+                  <div
+                    className="mb-4 px-4 py-2 rounded-xl animate-pulse"
+                    style={{
+                      background: "rgba(234,179,8,0.15)",
+                      border: "1px solid rgba(234,179,8,0.4)",
+                      backdropFilter: "blur(8px)",
+                    }}
+                  >
                     <p className="text-yellow-400 font-black text-lg">
                       {challengeTime.toFixed(1)}秒の記録に挑戦！
                     </p>
@@ -338,8 +402,14 @@ export default function BlinkGame() {
                   </div>
                 )}
                 {streakData && streakData.count > 0 && (
-                  <div className="mb-3 px-4 py-2 rounded-xl"
-                    style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)" }}>
+                  <div
+                    className="mb-3 px-4 py-2 rounded-xl"
+                    style={{
+                      background: "rgba(99,102,241,0.15)",
+                      border: "1px solid rgba(99,102,241,0.3)",
+                      backdropFilter: "blur(8px)",
+                    }}
+                  >
                     <p className="text-indigo-300 font-bold text-sm">{streakData.count}日連続プレイ中</p>
                     {getStreakMilestoneMessage(streakData.count) && (
                       <p className="text-yellow-400 text-xs mt-0.5">{getStreakMilestoneMessage(streakData.count)}</p>
@@ -358,10 +428,10 @@ export default function BlinkGame() {
                   aria-label="カメラを起動してまばたき禁止ゲームを開始する"
                   style={{
                     background: "linear-gradient(135deg, #6366f1, #4338ca)",
-                    boxShadow: "0 0 20px rgba(99,102,241,0.5)",
+                    boxShadow: "0 0 24px rgba(99,102,241,0.6)",
                   }}
                 >
-                  スタート ️
+                  スタート
                 </button>
               </div>
             )}
@@ -369,7 +439,7 @@ export default function BlinkGame() {
         )}
       </div>
       {phase === "playing" && (
-        <div className="w-full max-w-lg px-4 py-3 flex gap-4 justify-center">
+        <div className="w-full max-w-lg px-4 py-3 flex gap-4 justify-center relative z-10">
           <div className="text-center">
             <div className="text-xs text-indigo-400">左目</div>
             <div className="w-20 h-2 rounded-full overflow-hidden mt-1"
@@ -379,7 +449,10 @@ export default function BlinkGame() {
             </div>
           </div>
           <div className="text-center">
-            <div className="text-4xl font-black" style={{ color: "#818cf8" }}>
+            <div
+              className="text-4xl font-black"
+              style={{ color: "#818cf8", textShadow: "0 0 12px rgba(129,140,248,0.6)" }}
+            >
               {elapsed.toFixed(2)}秒
             </div>
             {challengeTime !== null && (
